@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.qa/
+.vercel/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example
+*.local
+*.log
+*.tsbuildinfo
+.DS_Store
+.idea/
+.vscode/
+TASK_CONTEXT.md
