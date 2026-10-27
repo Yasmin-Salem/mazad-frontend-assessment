@@ -10,6 +10,7 @@ import {
   type ListingFieldName,
   type ListingValidationErrors,
 } from '../model/listingForm'
+import { ListingSelect } from './ListingSelect'
 import { getListingCopy, type ListingCopy } from './listingCopy'
 
 type FieldShellProps = {
@@ -86,7 +87,7 @@ export function AddItemForm() {
     setErrors({})
     setSubmitState(null)
     setIsConfirmingClear(false)
-    requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('select, input, textarea')?.focus())
+    requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('.listing-select__trigger, input, textarea')?.focus())
   }
 
   const category = optionLabel(copy.categoryOptions, values.category, copy.emptyValue)
@@ -127,38 +128,32 @@ export function AddItemForm() {
             <legend>{copy.categoryTypeGroup}</legend>
             <div className="listing-form__grid">
               <FieldShell copy={copy} errorCode={errors.category} field="category">
-                <select
-                  aria-describedby={describedBy('category', Boolean(errors.category))}
-                  aria-invalid={Boolean(errors.category)}
-                  aria-label={copy.fields.category}
+                <ListingSelect
+                  describedBy={describedBy('category', Boolean(errors.category))}
+                  direction={direction}
                   id="listing-category"
+                  invalid={Boolean(errors.category)}
+                  label={copy.fields.category}
                   name="category"
-                  onChange={(event) => handleValueChange('category', event.target.value)}
-                  required
+                  onChange={(value) => handleValueChange('category', value)}
+                  options={Object.entries(copy.categoryOptions).map(([value, label]) => ({ label, value }))}
+                  placeholder={copy.categoryPlaceholder}
                   value={values.category}
-                >
-                  <option value="">{copy.categoryPlaceholder}</option>
-                  {Object.entries(copy.categoryOptions).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
+                />
               </FieldShell>
               <FieldShell copy={copy} errorCode={errors.type} field="type">
-                <select
-                  aria-describedby={describedBy('type', Boolean(errors.type))}
-                  aria-invalid={Boolean(errors.type)}
-                  aria-label={copy.fields.type}
+                <ListingSelect
+                  describedBy={describedBy('type', Boolean(errors.type))}
+                  direction={direction}
                   id="listing-type"
+                  invalid={Boolean(errors.type)}
+                  label={copy.fields.type}
                   name="type"
-                  onChange={(event) => handleValueChange('type', event.target.value)}
-                  required
+                  onChange={(value) => handleValueChange('type', value)}
+                  options={Object.entries(copy.typeOptions).map(([value, label]) => ({ label, value }))}
+                  placeholder={copy.typePlaceholder}
                   value={values.type}
-                >
-                  <option value="">{copy.typePlaceholder}</option>
-                  {Object.entries(copy.typeOptions).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
+                />
               </FieldShell>
             </div>
           </fieldset>

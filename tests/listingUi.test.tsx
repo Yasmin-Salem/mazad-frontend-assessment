@@ -35,6 +35,15 @@ function storeDraft(values = restoredValues) {
   }))
 }
 
+async function selectListingOption(
+  user: ReturnType<typeof userEvent.setup>,
+  field: string,
+  option: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: field }))
+  await user.click(screen.getByRole('option', { name: option }))
+}
+
 beforeEach(() => {
   window.localStorage.clear()
 })
@@ -48,8 +57,8 @@ describe('Add Item form', () => {
     expect(screen.getAllByText('This field is required.')).toHaveLength(7)
     expect(screen.getByLabelText('Category')).toHaveFocus()
 
-    await user.selectOptions(screen.getByLabelText('Category'), 'watches')
-    await user.selectOptions(screen.getByLabelText('Type'), 'preowned')
+    await selectListingOption(user, 'Category', 'Luxury Watches')
+    await selectListingOption(user, 'Type', 'Pre-owned')
     await user.type(screen.getByLabelText('Breed'), 'Datejust family')
     await user.type(screen.getByLabelText('Age'), '0')
     await user.type(screen.getByLabelText('Opening Price'), '-10')
@@ -82,6 +91,31 @@ describe('Add Item form', () => {
     expect(stored.version).toBe(LISTING_DRAFT_VERSION)
     expect(stored.data?.breed).toBe('Arabian')
     expect(screen.getByText('Draft saved locally')).toBeInTheDocument()
+  })
+
+  it('supports accessible keyboard selection and Escape dismissal', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const category = screen.getByRole('combobox', { name: 'Category' })
+    category.focus()
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+
+    expect(category).toHaveFocus()
+    expect(category).toHaveAttribute('aria-expanded', 'false')
+    expect(category).toHaveTextContent('Luxury Watches')
+    expect(window.localStorage.getItem(LISTING_DRAFT_KEY)).toContain('"category":"watches"')
+
+    const type = screen.getByRole('combobox', { name: 'Type' })
+    type.focus()
+    await user.keyboard('{Enter}')
+    expect(type).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('listbox', { name: 'Type' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    expect(type).toHaveFocus()
+    expect(type).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('listbox', { name: 'Type' })).not.toBeInTheDocument()
   })
 
   it('restores a saved Arabic draft and shows the exact required message', () => {
@@ -147,12 +181,14 @@ describe('Add Item form', () => {
   it('reuses one responsive form in English LTR and Arabic RTL app mode', () => {
     const english = renderApp()
     expect(screen.getByTestId('listing-page')).toHaveAttribute('data-direction', 'ltr')
+    expect(screen.getAllByRole('combobox')[0].closest('.listing-select')).toHaveAttribute('dir', 'ltr')
     expect(document.querySelectorAll('[data-responsive-layout="listing-form"]')).toHaveLength(1)
     english.unmount()
 
     renderApp('/listing?mode=app')
     expect(screen.getByTestId('listing-page')).toHaveClass('listing-page--app')
     expect(screen.getByTestId('listing-page')).toHaveAttribute('data-direction', 'rtl')
+    expect(screen.getAllByRole('combobox')[0].closest('.listing-select')).toHaveAttribute('dir', 'rtl')
     expect(screen.getByRole('navigation', { name: 'تنقل التطبيق' })).toBeInTheDocument()
     expect(document.querySelectorAll('[data-responsive-layout="listing-form"]')).toHaveLength(1)
   })

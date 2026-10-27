@@ -5,6 +5,7 @@ import { AddItemPage } from '../pages/AddItemPage'
 import { LoginPage } from '../pages/LoginPage'
 import { HomePage } from '../features/home/ui/HomePage'
 import { PresentationProvider } from './providers/PresentationProvider'
+import { ScrollManager } from './ScrollManager'
 
 function AppRoutes() {
   const location = useLocation()
@@ -27,8 +28,11 @@ function AppRoutes() {
 
 export function App() {
   return (
-    <PresentationProvider>
-      <AppRoutes />
-    </PresentationProvider>
+    <>
+      <ScrollManager />
+      <PresentationProvider>
+        <AppRoutes />
+      </PresentationProvider>
+    </>
   )
 }
