@@ -9,6 +9,9 @@ export type TranslationDictionary = {
   brandTagline: string
   languageAction: string
   languageSwitcherLabel: string
+  mobileMessages: string
+  demoOnly: string
+  messagesUnavailable: string
   navigation: Record<PageKey, string>
   navigationLabels: Record<'app' | 'desktop' | 'mobile', string>
   pages: Record<PageKey, { eyebrow: string; title: string; description: string }>
@@ -18,11 +21,14 @@ export type TranslationDictionary = {
 
 export const translations: Record<Language, TranslationDictionary> = {
   ar: {
+    messagesUnavailable: 'الرسائل غير متاحة في هذا العرض التجريبي.',
+    mobileMessages: 'الرسائل',
+    demoOnly: 'عرض تجريبي فقط',
     appBar: 'وضع التطبيق',
     back: 'رجوع',
-    brand: 'مَزاد',
-    brandHomeLabel: 'مَزاد — الصفحة الرئيسية',
-    brandTagline: 'مزادات استثنائية',
+    brand: 'أنعام',
+    brandHomeLabel: 'أنعام — الصفحة الرئيسية',
+    brandTagline: 'منصة المواشي والمزادات',
     languageAction: 'English',
     languageSwitcherLabel: 'التبديل إلى اللغة الإنجليزية',
     navigation: {
@@ -62,11 +68,14 @@ export const translations: Record<Language, TranslationDictionary> = {
     skipToContent: 'انتقل إلى المحتوى',
   },
   en: {
+    messagesUnavailable: 'Messaging is not available in this demo.',
+    mobileMessages: 'Messages',
+    demoOnly: 'Demo only',
     appBar: 'App mode',
     back: 'Back',
-    brand: 'MAZAD',
-    brandHomeLabel: 'Mazad home',
-    brandTagline: 'Exceptional auctions',
+    brand: "AN'AM",
+    brandHomeLabel: "AN'AM home",
+    brandTagline: 'Livestock marketplace',
     languageAction: 'العربية',
     languageSwitcherLabel: 'Switch to Arabic',
     navigation: {

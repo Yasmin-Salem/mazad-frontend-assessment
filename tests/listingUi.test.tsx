@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -48,7 +48,65 @@ beforeEach(() => {
   window.localStorage.clear()
 })
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 describe('Add Item form', () => {
+  it('selects images, changes the primary image, removes it, and revokes object URLs', async () => {
+    const createObjectURL = vi.fn()
+      .mockReturnValueOnce('blob:first')
+      .mockReturnValueOnce('blob:second')
+    const revokeObjectURL = vi.fn()
+    Object.defineProperties(URL, {
+      createObjectURL: { configurable: true, value: createObjectURL },
+      revokeObjectURL: { configurable: true, value: revokeObjectURL },
+    })
+    const user = userEvent.setup()
+    const view = renderApp()
+    const first = new File(['first'], 'first.jpg', { type: 'image/jpeg' })
+    const second = new File(['second'], 'second.webp', { type: 'image/webp' })
+
+    await user.upload(screen.getByLabelText('Choose images'), [first, second])
+    expect(createObjectURL).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('img', { name: 'Primary product image: first.jpg' })).toHaveAttribute('src', 'blob:first')
+
+    await user.click(screen.getByRole('button', { name: 'Make primary' }))
+    expect(screen.getByRole('img', { name: 'Primary product image: second.webp' })).toHaveAttribute('src', 'blob:second')
+
+    await user.click(screen.getByRole('button', { name: 'Remove second.webp' }))
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:second')
+    expect(screen.getByRole('img', { name: 'Primary product image: first.jpg' })).toHaveAttribute('src', 'blob:first')
+
+    view.unmount()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:first')
+  })
+
+  it('rejects unsupported and oversized files and limits selection to five images', async () => {
+    const createObjectURL = vi.fn((file: File) => `blob:${file.name}`)
+    const revokeObjectURL = vi.fn()
+    Object.defineProperties(URL, {
+      createObjectURL: { configurable: true, value: createObjectURL },
+      revokeObjectURL: { configurable: true, value: revokeObjectURL },
+    })
+    const user = userEvent.setup({ applyAccept: false })
+    renderApp()
+    const unsupported = new File(['text'], 'notes.txt', { type: 'text/plain' })
+    const oversized = new File(['large'], 'large.png', { type: 'image/png' })
+    Object.defineProperty(oversized, 'size', { value: 5 * 1024 * 1024 + 1 })
+    const validImages = Array.from({ length: 6 }, (_, index) => (
+      new File([`image-${index}`], `image-${index}.png`, { type: 'image/png' })
+    ))
+
+    await user.upload(screen.getByLabelText('Choose images'), [unsupported, oversized, ...validImages])
+
+    expect(screen.getByText('notes.txt: Use a JPG, PNG, or WebP image.')).toBeInTheDocument()
+    expect(screen.getByText('large.png: This image is larger than 5 MB.')).toBeInTheDocument()
+    expect(screen.getByText('A product can have no more than 5 images.')).toBeInTheDocument()
+    expect(within(screen.getByRole('list', { name: 'Selected product images' })).getAllByRole('img')).toHaveLength(5)
+    expect(createObjectURL).toHaveBeenCalledTimes(5)
+  })
+
   it('shows localized required and numeric errors, then validates without publishing', async () => {
     const user = userEvent.setup()
     renderApp()
@@ -57,8 +115,8 @@ describe('Add Item form', () => {
     expect(screen.getAllByText('This field is required.')).toHaveLength(7)
     expect(screen.getByLabelText('Category')).toHaveFocus()
 
-    await selectListingOption(user, 'Category', 'Luxury Watches')
-    await selectListingOption(user, 'Type', 'Pre-owned')
+    await selectListingOption(user, 'Category', 'Sheep')
+    await selectListingOption(user, 'Type', 'Farm listed')
     await user.type(screen.getByLabelText('Breed'), 'Datejust family')
     await user.type(screen.getByLabelText('Age'), '0')
     await user.type(screen.getByLabelText('Opening Price'), '-10')
@@ -103,7 +161,7 @@ describe('Add Item form', () => {
 
     expect(category).toHaveFocus()
     expect(category).toHaveAttribute('aria-expanded', 'false')
-    expect(category).toHaveTextContent('Luxury Watches')
+    expect(category).toHaveTextContent('Sheep')
     expect(window.localStorage.getItem(LISTING_DRAFT_KEY)).toContain('"category":"watches"')
 
     const type = screen.getByRole('combobox', { name: 'Type' })

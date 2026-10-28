@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { usePresentation } from '../../../app/providers/PresentationContext'
 import { Button } from '../../../shared/components/Button'
 import { useListingDraft } from '../hooks/useListingDraft'
+import { useListingImages } from '../hooks/useListingImages'
 import {
   hasListingContent,
   LISTING_FIELD_NAMES,
@@ -11,6 +12,7 @@ import {
   type ListingValidationErrors,
 } from '../model/listingForm'
 import { ListingSelect } from './ListingSelect'
+import { ListingImageUploader } from './ListingImageUploader'
 import { getListingCopy, type ListingCopy } from './listingCopy'
 
 type FieldShellProps = {
@@ -52,11 +54,21 @@ export function AddItemForm() {
   const { direction, isAppMode, language } = usePresentation()
   const copy = getListingCopy(language)
   const { clearDraft, initialReadStatus, persistenceStatus, updateField, values, wasRestored } = useListingDraft()
+  const {
+    addFiles,
+    clearImages,
+    errors: imageErrors,
+    images,
+    primaryImage,
+    primaryImageId,
+    removeImage,
+    selectPrimaryImage,
+  } = useListingImages()
   const [errors, setErrors] = useState<ListingValidationErrors>({})
   const [submitState, setSubmitState] = useState<'invalid' | 'valid' | null>(null)
   const [isConfirmingClear, setIsConfirmingClear] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
-  const hasContent = hasListingContent(values)
+  const hasContent = hasListingContent(values) || images.length > 0
 
   const handleValueChange = (field: ListingFieldName, value: string) => {
     updateField(field, value)
@@ -84,6 +96,7 @@ export function AddItemForm() {
 
   const confirmClear = () => {
     clearDraft()
+    clearImages()
     setErrors({})
     setSubmitState(null)
     setIsConfirmingClear(false)
@@ -239,6 +252,16 @@ export function AddItemForm() {
             />
           </FieldShell>
 
+          <ListingImageUploader
+            copy={copy}
+            errors={imageErrors}
+            images={images}
+            onAddFiles={addFiles}
+            onRemove={removeImage}
+            onSelectPrimary={selectPrimaryImage}
+            primaryImageId={primaryImageId}
+          />
+
           {submitState && (
             <p className={`listing-submit-status listing-submit-status--${submitState}`} role={submitState === 'invalid' ? 'alert' : 'status'}>
               {submitState === 'valid' ? copy.validDemo : copy.invalidForm}
@@ -272,8 +295,11 @@ export function AddItemForm() {
             <span>{copy.demoOnly}</span>
           </div>
           <figure>
-            <img alt={copy.previewImageAlt} src="/images/auction/emerald-watch-front.png" />
-            <figcaption>{copy.sampleImage}</figcaption>
+            <img
+              alt={primaryImage ? copy.uploadedPreviewAlt(primaryImage.file.name) : copy.previewImageAlt}
+              src={primaryImage?.url ?? '/images/auction/livestock/ram-curly-horns.jpg'}
+            />
+            <figcaption>{primaryImage ? copy.selectedImageCaption : copy.sampleImage}</figcaption>
           </figure>
           <dl>
             <div><dt>{copy.fields.category}</dt><dd>{category}</dd></div>

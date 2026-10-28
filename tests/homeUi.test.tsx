@@ -11,50 +11,69 @@ function renderApp(route: string) {
   )
 }
 
-describe('responsive Home page', () => {
-  it('uses existing auction data and routes in the four approved sections', () => {
+describe('responsive AN’AM marketplace Home page', () => {
+  it('renders the marketplace banner, actions, and centralized livestock cards', () => {
     renderApp('/?lang=en&campaign=review')
 
     const page = screen.getByTestId('home-page')
-    expect(within(page).getByRole('heading', { name: 'Discover extraordinary auctions for rare pieces' })).toBeInTheDocument()
-    expect(within(page).getByRole('heading', { name: 'Featured auction' })).toBeInTheDocument()
-    expect(within(page).getByRole('heading', { name: 'How Mazad works' })).toBeInTheDocument()
-    expect(within(page).getByRole('heading', { name: 'List your item' })).toBeInTheDocument()
-    expect(within(page).getByRole('heading', { name: 'Emerald Datejust 41' })).toBeInTheDocument()
-    expect(within(page).getByText('Demo current bid')).toBeInTheDocument()
-    expect(within(page).getByText('12,500 SAR')).toBeInTheDocument()
+    expect(within(page).getByRole('heading', { name: 'The best livestock at better prices' })).toBeInTheDocument()
+    expect(within(page).getByRole('searchbox', { name: 'Search livestock listings' })).toBeInTheDocument()
+    expect(within(page).getByRole('heading', { name: 'Latest offers' })).toBeInTheDocument()
+    expect(within(page).getByRole('heading', { name: 'Holstein dairy cow' })).toBeInTheDocument()
+    expect(within(page).getByRole('heading', { name: 'Premium Harri ram' })).toBeInTheDocument()
+    expect(within(page).getByText((_, element) => element?.tagName === 'STRONG' && element.textContent === '2,350 SAR')).toBeInTheDocument()
 
-    const auctionLinks = within(page).getAllByRole('link', { name: /Explore auctions|View auction/ })
-    expect(auctionLinks).toHaveLength(2)
-    expect(auctionLinks[0]).toHaveAttribute('href', '/auction?lang=en&campaign=review')
-    expect(auctionLinks[1]).toHaveAttribute('href', '/auction?lang=en&campaign=review')
-    expect(within(page).getAllByRole('link', { name: /Add an item/ })[0]).toHaveAttribute(
+    expect(within(page).getByRole('link', { name: 'Live auctions' })).toHaveAttribute(
+      'href',
+      '/auction?lang=en&campaign=review',
+    )
+    expect(within(page).getByRole('link', { name: 'Add listing' })).toHaveAttribute(
       'href',
       '/listing?lang=en&campaign=review',
     )
+    expect(within(page).getByRole('button', { name: 'Trusted breeders — Demo only' })).toBeInTheDocument()
   })
 
-  it('renders localized Arabic RTL content through the same component tree', () => {
+  it('keeps every marketplace section inside the shared Home width container', () => {
+    renderApp('/?lang=en')
+
+    const page = screen.getByTestId('home-page')
+    const search = within(page).getByRole('search')
+    const hero = within(page).getByRole('heading', { name: 'The best livestock at better prices' }).closest('section')
+    const quickActions = within(page).getByRole('navigation', { name: 'Trusted livestock marketplace' })
+    const offers = within(page).getByRole('heading', { name: 'Latest offers' }).closest('section')
+
+    expect(search).toHaveClass('marketplace-search')
+    expect(hero).toHaveClass('marketplace-banner')
+    expect(quickActions).toHaveClass('marketplace-quick-actions')
+    expect(offers).toHaveClass('marketplace-offers')
+    expect(page).toContainElement(search)
+    expect(page).toContainElement(hero)
+    expect(page).toContainElement(quickActions)
+    expect(page).toContainElement(offers)
+  })
+
+  it('renders readable localized Arabic RTL marketplace content', () => {
     renderApp('/')
 
     expect(document.documentElement).toHaveAttribute('lang', 'ar')
     expect(document.documentElement).toHaveAttribute('dir', 'rtl')
     expect(screen.getByTestId('home-page')).toHaveAttribute('data-direction', 'rtl')
-    expect(screen.getByRole('heading', { name: 'اكتشف مزادات استثنائية على قطع نادرة' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'مزاد مميز' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'كيف يعمل مزاد؟' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'أضف منتجك' })).toBeInTheDocument()
-    expect(screen.getByText('مزايدة حالية تجريبية')).toBeInTheDocument()
-    expect(screen.getByText('12,500 SAR')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'أفضل المواشي بأفضل الأسعار' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'أحدث العروض' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'بقرة هولشتاين' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('ابحث عن ماشية، سلالة، أو إعلان')).toBeInTheDocument()
   })
 
-  it('reuses the Home page inside the existing app shell', () => {
+  it('uses the five-item mobile composition inside the existing app shell', () => {
     renderApp('/?mode=app&lang=en')
 
     expect(document.querySelector('[data-mode="app"]')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'App navigation' })).toBeInTheDocument()
+    const navigation = screen.getByRole('navigation', { name: 'App navigation' })
+    expect(within(navigation).getAllByRole('link')).toHaveLength(4)
+    expect(within(navigation).getAllByRole('button')).toHaveLength(1)
+    expect(within(navigation).getByRole('button', { name: 'Messages — Demo only' })).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).not.toBeInTheDocument()
-    expect(screen.getAllByTestId('home-page')).toHaveLength(1)
-    expect(screen.getByRole('heading', { name: 'Discover extraordinary auctions for rare pieces' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'The best livestock at better prices' })).toBeInTheDocument()
   })
 })

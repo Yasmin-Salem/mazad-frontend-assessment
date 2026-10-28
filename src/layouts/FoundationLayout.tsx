@@ -5,16 +5,22 @@ import { IconButton } from '../shared/components/IconButton'
 import { LanguageSwitcher } from '../shared/components/LanguageSwitcher'
 import { NavigationLinks } from '../shared/components/NavigationLinks'
 import { usePresentation } from '../app/providers/PresentationContext'
+import { homeCopy } from '../features/home/ui/homeCopy'
 
 function WebHeader() {
-  const { t } = usePresentation()
+  const { language, t } = usePresentation()
 
   return (
     <header className="web-header">
       <div className="shell-container web-header__topbar">
         <BrandMark />
         <NavigationLinks variant="desktop" />
-        <LanguageSwitcher />
+        <div className="web-header__utilities">
+          <span className="web-header__location">
+            <span aria-hidden="true">⌖</span>{homeCopy[language].location}
+          </span>
+          <LanguageSwitcher />
+        </div>
       </div>
       <span className="sr-only">{t.phaseLabel}</span>
     </header>
@@ -24,7 +30,7 @@ function WebHeader() {
 function AppHeader() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = usePresentation()
+  const { language, t } = usePresentation()
 
   const handleBack = () => {
     const historyIndex = (window.history.state as { idx?: number } | null)?.idx ?? 0
@@ -42,7 +48,7 @@ function AppHeader() {
       </IconButton>
       <div className="app-header__identity">
         <BrandMark compact />
-        <span>{t.appBar}</span>
+        <span>{homeCopy[language].location}</span>
       </div>
       <LanguageSwitcher compact />
     </header>

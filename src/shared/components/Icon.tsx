@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react'
 
-export type IconName = 'add' | 'auction' | 'back' | 'home' | 'language' | 'package' | 'search' | 'trophy' | 'user'
+export type IconName = 'add' | 'auction' | 'back' | 'home' | 'language' | 'message' | 'package' | 'search' | 'trophy' | 'user'
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName
@@ -25,6 +25,12 @@ const iconPaths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M3 12h18M12 3c2.2 2.5 3.3 5.5 3.3 9S14.2 18.5 12 21M12 3C9.8 5.5 8.7 8.5 8.7 12s1.1 6.5 3.3 9" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M5 5.5h14v10H9l-4 3z" />
+      <path d="M8.5 9h7M8.5 12h4.5" />
     </>
   ),
   package: (

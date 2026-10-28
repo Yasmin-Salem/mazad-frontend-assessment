@@ -67,6 +67,38 @@ describe('useCountdown', () => {
 })
 
 describe('useAuction', () => {
+  it('moves a scheduled auction from its start countdown to active and then ended', () => {
+    vi.useFakeTimers()
+    let observedAt = NOW
+    const auction = {
+      ...createDemoAuction(NOW),
+      startsAt: NOW + 1_000,
+      endsAt: NOW + 2_000,
+      status: 'scheduled' as const,
+      bids: [],
+      currentPrice: 1_500,
+      currentBidder: undefined,
+    }
+    const { result } = renderHook(() => useAuction(auction, {
+      countdownTickMs: 100,
+      now: () => observedAt,
+    }))
+
+    expect(result.current.state.auction.status).toBe('scheduled')
+    expect(result.current.countdown.totalSeconds).toBe(1)
+
+    observedAt = NOW + 1_000
+    act(() => vi.advanceTimersByTime(100))
+    expect(result.current.state.auction.status).toBe('active')
+    expect(result.current.countdown.totalSeconds).toBe(1)
+
+    observedAt = NOW + 2_000
+    act(() => vi.advanceTimersByTime(100))
+    expect(result.current.state.auction.status).toBe('ended')
+    expect(result.current.countdown.totalSeconds).toBe(0)
+    expect(result.current.countdown.isExpired).toBe(true)
+  })
+
   it('accepts updates through the replaceable source and unsubscribes on cleanup', () => {
     vi.useFakeTimers()
     let listener: AuctionUpdateListener | undefined

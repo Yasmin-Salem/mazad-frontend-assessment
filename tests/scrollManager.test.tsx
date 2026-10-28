@@ -70,7 +70,7 @@ describe('route scroll management', () => {
     scrollTo.mockClear()
     windowScrollY = 720
 
-    await user.click(screen.getAllByRole('link', { name: 'Add an item' })[0])
+    await user.click(screen.getAllByRole('link', { name: 'Add listing' })[0])
 
     expect(screen.getByRole('heading', { name: 'Add a new item' })).toBeInTheDocument()
     expect(scrollTo).toHaveBeenCalledWith({ behavior: 'auto', left: 0, top: 0 })
@@ -129,7 +129,7 @@ describe('route scroll management', () => {
     })
     main.scrollTo = mainScrollTo
 
-    await user.click(screen.getAllByRole('link', { name: 'Add an item' })[0])
+    await user.click(screen.getAllByRole('link', { name: 'Add listing' })[0])
 
     expect(mainScrollTo).toHaveBeenCalledWith({ behavior: 'auto', left: 0, top: 0 })
     expect(window.scrollTo).not.toHaveBeenCalled()

@@ -1,9 +1,7 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { usePresentation } from '../../../app/providers/PresentationContext'
-import { createDemoAuction } from '../../auction/data/demoAuction'
-import { getAuctionCopy } from '../../auction/ui/auctionCopy'
-import { Icon } from '../../../shared/components/Icon'
+import { Icon, type IconName } from '../../../shared/components/Icon'
+import { listingText, marketplaceListings } from '../data/marketplaceData'
 import { homeCopy } from './homeCopy'
 
 function formatAmount(amount: number): string {
@@ -14,88 +12,79 @@ export function HomePage() {
   const { direction, isAppMode, language } = usePresentation()
   const location = useLocation()
   const copy = homeCopy[language]
-  const auctionCopy = getAuctionCopy(language)
-  const [featuredAuction] = useState(() => createDemoAuction())
   const routeSearch = location.search
+  const quickActions: readonly { icon: IconName; label: string; path?: '/auction' | '/listing' }[] = [
+    { icon: 'package', label: copy.quickActions[0] },
+    { icon: 'auction', label: copy.quickActions[1], path: '/auction' },
+    { icon: 'user', label: copy.quickActions[2] },
+    { icon: 'add', label: copy.quickActions[3], path: '/listing' },
+  ]
 
   return (
     <article
-      className={`home-page${isAppMode ? ' home-page--app' : ''}`}
+      className={`marketplace-home${isAppMode ? ' marketplace-home--app' : ''}`}
       data-direction={direction}
       data-testid="home-page"
     >
-      <section className="home-hero" aria-labelledby="home-title">
-        <div className="home-hero__content">
-          <p className="eyebrow">{copy.eyebrow}</p>
-          <h1 id="home-title">{copy.title}</h1>
-          <p className="home-hero__description">{copy.description}</p>
-          <div className="home-actions">
-            <Link className="button button--primary home-action" to={{ pathname: '/auction', search: routeSearch }}>
-              {copy.exploreAuctions}<span aria-hidden="true">→</span>
-            </Link>
-            <Link className="button button--secondary home-action" to={{ pathname: '/listing', search: routeSearch }}>
-              {copy.addItem}<span aria-hidden="true">+</span>
-            </Link>
-          </div>
-        </div>
-        <div className="home-hero__media">
-          <img
-            alt={auctionCopy.imageAlt[0]}
-            fetchPriority="high"
-            src={featuredAuction.item.imageUrls[0]}
-          />
-          <span aria-hidden="true" className="home-hero__media-accent" />
+      <div className="marketplace-utility">
+        <span className="marketplace-location"><span aria-hidden="true">⌖</span>{copy.location}</span>
+        <form className="marketplace-search" role="search" onSubmit={(event) => event.preventDefault()}>
+          <input aria-label={copy.searchLabel} placeholder={copy.searchPlaceholder} type="search" />
+          <button aria-label={copy.searchLabel} type="submit"><Icon name="search" /></button>
+        </form>
+      </div>
+
+      <section className="marketplace-banner" aria-labelledby="home-title">
+        <picture className="marketplace-banner__picture" aria-hidden="true">
+          <source media="(max-width: 47.99rem)" srcSet="/images/marketplace/cow-hero-approved-mobile.png" />
+          <img alt="" fetchPriority="high" src="/images/marketplace/cow-hero-approved-wide.png" />
+        </picture>
+        <span className="marketplace-banner__shade" aria-hidden="true" />
+        <div className="marketplace-banner__content">
+          <p>{copy.bannerEyebrow}</p>
+          <h1 id="home-title">{copy.bannerTitle}</h1>
+          <span>{copy.bannerDescription}</span>
+          <Link to={{ pathname: '/auction', search: routeSearch }}>{copy.bannerAction}</Link>
         </div>
       </section>
 
-      <div className="home-support">
-        <section className="home-panel home-featured" aria-labelledby="featured-auction-title">
-          <header className="home-panel__heading">
-            <h2 id="featured-auction-title">{copy.featuredAuction}</h2>
-            <span>{copy.liveAuction}</span>
-          </header>
-          <div className="home-featured__body">
-            <img alt={auctionCopy.imageAlt[0]} loading="lazy" src={featuredAuction.item.imageUrls[0]} />
-            <div>
-              <h3>{auctionCopy.title}</h3>
-              <p>{copy.currentBid}</p>
-              <strong dir="ltr">{formatAmount(featuredAuction.currentPrice)} {featuredAuction.currency}</strong>
-            </div>
-          </div>
-          <Link className="home-panel__link" to={{ pathname: '/auction', search: routeSearch }}>
-            {copy.viewAuction}<span aria-hidden="true">→</span>
-          </Link>
-        </section>
+      <nav className="marketplace-quick-actions" aria-label={copy.bannerEyebrow}>
+        {quickActions.map((action) => {
+          const content = <><span aria-hidden="true"><Icon name={action.icon} /></span><strong>{action.label}</strong></>
+          return action.path ? (
+            <Link key={action.label} to={{ pathname: action.path, search: routeSearch }}>{content}</Link>
+          ) : (
+            <button aria-label={`${action.label} — ${copy.demoOnly}`} key={action.label} type="button">{content}</button>
+          )
+        })}
+      </nav>
 
-        <section className="home-panel home-how" aria-labelledby="how-it-works-title">
-          <h2 id="how-it-works-title">{copy.howItWorks}</h2>
-          <ol>
-            {copy.steps.map((step, index) => (
-              <li key={step.title}>
-                <span className="home-how__icon" aria-hidden="true">
-                  <Icon name={index === 0 ? 'search' : index === 1 ? 'auction' : 'trophy'} />
-                  <b>{index + 1}</b>
-                </span>
-                <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <aside className="home-panel home-seller" aria-labelledby="seller-title">
-          <span className="home-seller__icon" aria-hidden="true"><Icon name="package" /></span>
-          <div>
-            <h2 id="seller-title">{copy.sellerTitle}</h2>
-            <p>{copy.sellerDescription}</p>
-          </div>
-          <Link className="button button--primary home-action" to={{ pathname: '/listing', search: routeSearch }}>
-            {copy.addItem}<span aria-hidden="true">+</span>
-          </Link>
-        </aside>
-      </div>
+      <section className="marketplace-offers" aria-labelledby="latest-offers-title">
+        <header>
+          <h2 id="latest-offers-title">{copy.latestOffers}</h2>
+          <button aria-label={`${copy.viewAll} — ${copy.demoOnly}`} type="button">{copy.viewAll}</button>
+        </header>
+        <div className="marketplace-offers__grid">
+          {marketplaceListings.map((listing) => (
+            <article className="marketplace-listing-card" key={listing.id}>
+              <div className="marketplace-listing-card__media">
+                <img alt={listingText(listing.imageAlt, language)} loading="eager" src={listing.imageUrl} />
+                {listing.isLive ? <span className="marketplace-listing-card__live">{copy.live}</span> : null}
+                <button aria-label={copy.favoriteDemo} type="button"><span aria-hidden="true">♡</span></button>
+              </div>
+              <div className="marketplace-listing-card__body">
+                <h3>
+                  {listing.auctionPath ? (
+                    <Link to={{ pathname: listing.auctionPath, search: routeSearch }}>{listingText(listing.title, language)}</Link>
+                  ) : listingText(listing.title, language)}
+                </h3>
+                <p><span aria-hidden="true">⌖</span>{listingText(listing.location, language)}</p>
+                <strong dir="ltr">{formatAmount(listing.price)} <span>{copy.currency}</span></strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </article>
   )
 }

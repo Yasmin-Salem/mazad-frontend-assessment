@@ -1,5 +1,6 @@
 import type { Auction, Bid, Bidder } from '../model/types'
 import type { ScheduledAuctionUpdate } from '../services/localAuctionUpdateSource'
+import { getDefaultAuctionListing } from './auctionListings'
 
 export const demoParticipant: Bidder = {
   id: 'demo-participant',
@@ -7,21 +8,17 @@ export const demoParticipant: Bidder = {
 }
 
 const simulatedBidders: readonly Bidder[] = [
-  { id: 'bidder-ahmed', displayName: 'Ahmed S.' },
-  { id: 'bidder-sara', displayName: 'Sara M.' },
-  { id: 'bidder-khalid', displayName: 'Khalid A.' },
-  { id: 'bidder-noura', displayName: 'Noura A.' },
-  { id: 'bidder-mohamed', displayName: 'Mohamed K.' },
+  { id: 'bidder-ahmed', displayName: 'أحمد السيد' },
+  { id: 'bidder-noura', displayName: 'نورة أحمد' },
+  { id: 'bidder-khalid', displayName: 'خالد العتيبي' },
+  { id: 'bidder-mohamed', displayName: 'محمد الدوسري' },
+  { id: 'bidder-salem', displayName: 'سالم الحربي' },
 ]
 
-export const demoWatchImages = [
-  '/images/auction/emerald-watch-front.png',
-  '/images/auction/emerald-watch-dial.png',
-  '/images/auction/emerald-watch-back.png',
-] as const
+export const demoLivestockImages = getDefaultAuctionListing().auction.item.imageUrls
 
 function createInitialBids(observedAt: number): readonly Bid[] {
-  const amounts = [9_000, 10_500, 11_300, 12_000, 12_500] as const
+  const amounts = [1_750, 1_900, 2_050, 2_200, 2_350] as const
 
   return amounts.map((amount, index) => ({
     id: `opening-bid-${index + 1}`,
@@ -34,20 +31,17 @@ function createInitialBids(observedAt: number): readonly Bid[] {
 }
 
 export function createDemoAuction(observedAt = Date.now()): Auction {
+  const featuredAuction = getDefaultAuctionListing().auction
   const bids = createInitialBids(observedAt)
 
   return {
+    ...featuredAuction,
     id: 'featured-auction',
     item: {
+      ...featuredAuction.item,
       id: 'featured-lot',
-      title: 'Emerald Datejust 41',
-      description: 'A refined mechanical timepiece with an emerald dial, soft-gold case, and hand-finished leather strap.',
-      category: 'Luxury Watches',
-      imageUrls: demoWatchImages,
     },
-    currency: 'SAR',
-    openingPrice: 8_000,
-    currentPrice: 12_500,
+    currentPrice: 2_350,
     currentBidder: simulatedBidders.at(-1),
     startsAt: observedAt - 30 * 60_000,
     endsAt: observedAt + 5 * 60_000,
@@ -56,17 +50,22 @@ export function createDemoAuction(observedAt = Date.now()): Auction {
   }
 }
 
-export function createDemoAuctionSchedule(observedAt = Date.now()): readonly ScheduledAuctionUpdate[] {
-  return [
+export function createDemoAuctionSchedule(
+  observedAt = Date.now(),
+  auction: Auction = createDemoAuction(observedAt),
+): readonly ScheduledAuctionUpdate[] {
+  if (observedAt < auction.startsAt || observedAt >= auction.endsAt) return []
+
+  const schedule: readonly ScheduledAuctionUpdate[] = [
     {
       delayMs: 15_000,
       update: {
         type: 'bid-placed',
         bid: {
           id: 'simulated-live-bid-1',
-          auctionId: 'featured-auction',
-          bidder: { id: 'live-bidder-1', displayName: 'Faisal R.' },
-          amount: 13_000,
+          auctionId: auction.id,
+          bidder: { id: 'live-bidder-1', displayName: 'فيصل القحطاني' },
+          amount: auction.currentPrice + 500,
           placedAt: observedAt + 15_000,
           source: 'simulator',
         },
@@ -78,13 +77,15 @@ export function createDemoAuctionSchedule(observedAt = Date.now()): readonly Sch
         type: 'bid-placed',
         bid: {
           id: 'simulated-live-bid-2',
-          auctionId: 'featured-auction',
-          bidder: { id: 'live-bidder-2', displayName: 'Layla H.' },
-          amount: 13_500,
+          auctionId: auction.id,
+          bidder: { id: 'live-bidder-2', displayName: 'ليلى الحربي' },
+          amount: auction.currentPrice + 1_000,
           placedAt: observedAt + 35_000,
           source: 'simulator',
         },
       },
     },
   ]
+
+  return schedule.filter(({ delayMs }) => observedAt + delayMs < auction.endsAt)
 }

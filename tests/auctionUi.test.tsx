@@ -58,12 +58,12 @@ describe('live auction room', () => {
     expect(screen.getByRole('button', { name: '+1,000' })).toHaveAttribute('data-bid-increment', '1000')
 
     await user.click(screen.getByRole('button', { name: '+100' }))
-    expect(screen.getByTestId('current-price')).toHaveTextContent('SAR 12,600')
-    expect(screen.getByText('Bid accepted at SAR 12,600.')).toHaveClass('auction-feedback--accepted')
+    expect(screen.getByTestId('current-price')).toHaveTextContent('SAR 2,450')
+    expect(screen.getByText('Bid accepted at SAR 2,450.')).toHaveClass('auction-feedback--accepted')
 
     observedAt += 100
     await user.click(screen.getByRole('button', { name: '+500' }))
-    expect(screen.getByTestId('current-price')).toHaveTextContent('SAR 12,600')
+    expect(screen.getByTestId('current-price')).toHaveTextContent('SAR 2,450')
     expect(screen.getByRole('alert')).toHaveTextContent('Please wait a moment before placing another bid.')
   })
 
@@ -140,16 +140,16 @@ describe('live auction room', () => {
     fireEvent.touchEnd(stage as Element, { changedTouches: [{ clientX: 120 }] })
     expect(screen.getByTestId('gallery-image')).toHaveAttribute(
       'alt',
-      'Close view of the emerald watch dial',
+      'Full-body Harri ram standing in a dry field',
     )
 
     await user.click(screen.getByRole('button', { name: 'Next image' }))
     expect(screen.getByTestId('gallery-image')).toHaveAttribute(
       'alt',
-      'Rear view of the watch movement and leather strap',
+      'Close portrait of a white ram with curled horns',
     )
     await user.click(screen.getByRole('button', { name: 'Previous image' }))
-    expect(screen.getByTestId('gallery-image')).toHaveAttribute('alt', 'Close view of the emerald watch dial')
+    expect(screen.getByTestId('gallery-image')).toHaveAttribute('alt', 'Full-body Harri ram standing in a dry field')
 
     await user.click(screen.getByRole('button', { name: 'Open enlarged image' }))
     const dialog = screen.getByRole('dialog', { name: 'Enlarged product image' })
@@ -167,7 +167,7 @@ describe('live auction room', () => {
     fireEvent.keyDown(screen.getByTestId('auction-gallery'), { key: 'ArrowRight' })
     expect(screen.getByTestId('gallery-image')).toHaveAttribute(
       'alt',
-      'Close view of the emerald watch dial',
+      'Full-body Harri ram standing in a dry field',
     )
     expect(screen.getByTestId('auction-room')).toHaveAttribute('data-direction', 'ltr')
     english.unmount()
@@ -176,7 +176,7 @@ describe('live auction room', () => {
     fireEvent.keyDown(screen.getByTestId('auction-gallery'), { key: 'ArrowRight' })
     expect(screen.getByTestId('gallery-image')).toHaveAttribute(
       'alt',
-      'الجهة الخلفية لحركة الساعة والسوار الجلدي',
+      'صورة مقربة لخروف أبيض بقرون كبيرة ملتفة',
     )
     expect(screen.getByTestId('auction-room')).toHaveAttribute('data-direction', 'rtl')
   })

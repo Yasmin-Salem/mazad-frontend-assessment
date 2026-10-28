@@ -44,7 +44,10 @@ export function useAuction(
     dispatch({ type: 'time-observed', observedAt })
   }, [])
 
-  const countdown = useCountdown(state.auction.endsAt, {
+  const countdownTarget = state.auction.status === 'scheduled'
+    ? state.auction.startsAt
+    : state.auction.endsAt
+  const countdown = useCountdown(countdownTarget, {
     tickMs: countdownTickMs,
     now,
     onTimeObserved: observeTime,

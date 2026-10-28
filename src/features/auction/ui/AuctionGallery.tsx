@@ -1,15 +1,17 @@
-import { useRef, useState, type KeyboardEvent, type TouchEvent } from 'react'
+import { useRef, useState, type KeyboardEvent, type ReactNode, type TouchEvent } from 'react'
 import type { AuctionCopy } from './auctionCopy'
 
 type AuctionGalleryProps = {
   copy: AuctionCopy
   direction: 'ltr' | 'rtl'
   imageUrls: readonly string[]
+  imageAlts?: readonly string[]
+  stageOverlay?: ReactNode
 }
 
 const SWIPE_THRESHOLD_PX = 45
 
-export function AuctionGallery({ copy, direction, imageUrls }: AuctionGalleryProps) {
+export function AuctionGallery({ copy, direction, imageAlts, imageUrls, stageOverlay }: AuctionGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(imageUrls.length > 0)
   const [hasError, setHasError] = useState(imageUrls.length === 0)
@@ -17,7 +19,7 @@ export function AuctionGallery({ copy, direction, imageUrls }: AuctionGalleryPro
   const touchStartX = useRef<number | null>(null)
   const zoomOpener = useRef<HTMLButtonElement | null>(null)
   const imageUrl = imageUrls[activeIndex]
-  const imageAlt = copy.imageAlt[activeIndex] ?? copy.title
+  const imageAlt = imageAlts?.[activeIndex] ?? copy.imageAlt[activeIndex] ?? copy.title
 
   const showImage = (nextIndex: number) => {
     if (imageUrls.length === 0) return
@@ -76,6 +78,13 @@ export function AuctionGallery({ copy, direction, imageUrls }: AuctionGalleryPro
           onTouchEnd={handleTouchEnd}
           onTouchStart={handleTouchStart}
         >
+          {imageUrl && !hasError && (
+            <span
+              aria-hidden="true"
+              className="auction-gallery__backdrop"
+              style={{ backgroundImage: `url("${imageUrl}")` }}
+            />
+          )}
           {imageUrl && !hasError ? (
             <img
               alt={imageAlt}
@@ -100,6 +109,8 @@ export function AuctionGallery({ copy, direction, imageUrls }: AuctionGalleryPro
           {isLoading && !hasError && (
             <span className="auction-gallery__loading" role="status">{copy.loadingImage}</span>
           )}
+
+          {stageOverlay}
 
           <button
             aria-label={copy.previousImage}
